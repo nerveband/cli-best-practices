@@ -1,6 +1,6 @@
 # Agent knowledge packaging
 
-A CLI can be perfectly structured — JSON output, dry-run, the works — and agents will still use it wrong if they don't know what it can do. The packaging matters.
+A CLI can be perfectly structured (JSON output, dry-run, the works) and agents will still use it wrong if they don't know what it can do. The packaging matters.
 
 ## Progressive disclosure, not schema dumps
 
@@ -16,14 +16,14 @@ Total context cost: ~40 lines. Compare to the MCP approach where the agent loads
 
 ## AGENTS.md
 
-Ship an `AGENTS.md` in your repo root. Keep it short — under 100 lines. Include:
+Ship an `AGENTS.md` in your repo root. Keep it short, under 100 lines. Include:
 
 - What the CLI does (one paragraph)
 - Auth setup (env vars, config commands)
 - The most common workflows (3-5 examples)
 - Explicit guardrails: "always use --dry-run before delete," "use --fields to limit output size"
 
-The CLIWatch team found that a one-liner in AGENTS.md pointing to a skills subcommand (~40 tokens) eliminated blind guessing and improved GPT-5.2's pass rate from 33% to 50%.
+The [CLIWatch team](https://cliwatch.com/blog/designing-a-cli-skills-protocol) found that a one-liner in AGENTS.md pointing to a skills subcommand (~40 tokens) eliminated blind guessing and improved GPT-5.2's pass rate from 33% to 50%.
 
 ## The `skills` subcommand
 
@@ -62,11 +62,11 @@ description: Deploy to staging and production
 4. When ready for prod, run `mycli deploy --env production --tag TAG --dry-run`
 ```
 
-Teams that ship SKILL.md files alongside their CLIs report much higher agent success rates than those relying on docs alone. The key is that skills describe workflows, not just individual commands.
+Teams that ship SKILL.md files alongside their CLIs report much higher agent success rates than those relying on docs alone ([GitBook's explainer](https://www.gitbook.com/blog/skill-md) is a good starting point). The key is that skills describe workflows, not just individual commands.
 
 ## Detect when an agent is calling
 
-The `AI_AGENT` environment variable is emerging as a standard (via Vercel's `@vercel/detect-agent`). When set, your CLI can automatically:
+The `AI_AGENT` environment variable is emerging as a standard (via Vercel's [`@vercel/detect-agent`](https://www.npmjs.com/package/@vercel/detect-agent)). When set, your CLI can automatically:
 
 - Switch to JSON output
 - Suppress progress bars and spinners

@@ -24,7 +24,7 @@ Missing a required flag? Don't hang. Print the correct invocation and exit. Agen
 
 ## 6. Idempotent commands
 
-Agents retry constantly — network timeouts, context loss mid-task. Running the same deploy twice should return "already deployed, no-op," not create a duplicate.
+Agents retry constantly. Network timeouts, context loss mid-task. Running the same deploy twice should return "already deployed, no-op," not create a duplicate.
 
 ## 7. --dry-run for destructive actions
 
@@ -32,7 +32,7 @@ Let agents preview what a delete or deploy would do before committing. Validate 
 
 ## 8. --yes to skip confirmations
 
-Humans get "are you sure?" — agents pass `--yes`. The safe path is still the default, but bypassing it is one flag away.
+Humans get "are you sure?" and agents pass `--yes`. The safe path is still the default, but bypassing it is one flag away.
 
 ## 9. Predictable command structure
 

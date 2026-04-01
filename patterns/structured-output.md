@@ -1,6 +1,6 @@
 # Structured output
 
-The single most impactful thing you can do for agent compatibility. If your CLI only outputs human-readable tables and prose, agents have to parse free text — which is fragile, token-wasteful, and error-prone.
+The single most impactful thing you can do for agent compatibility. If your CLI only outputs human-readable tables and prose, agents have to parse free text, which is fragile, token-wasteful, and error-prone.
 
 ## The basics
 
@@ -64,4 +64,4 @@ This matters more than you'd think. A full Craft document response might be 2,00
 
 ## Real-world reference
 
-The GitHub CLI (`gh`) does this well. `gh issue list --json number,title,state` returns only those fields. `gh issue list` without `--json` returns a human-readable table. The non-TTY behavior is automatic.
+The [GitHub CLI (`gh`)](https://cli.github.com/) does this well. `gh issue list --json number,title,state` returns only those fields. `gh issue list` without `--json` returns a human-readable table. The non-TTY behavior is automatic.

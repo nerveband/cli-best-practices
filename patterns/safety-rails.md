@@ -1,10 +1,10 @@
 # Safety rails
 
-Agents retry. They hallucinate. They sometimes decide to delete things they shouldn't. Safety rails aren't about limiting what agents can do — they're about letting agents verify before acting.
+Agents retry. They hallucinate. They sometimes decide to delete things they shouldn't. Safety rails aren't about limiting what agents can do. They're about letting agents verify before acting.
 
 ## --dry-run on every mutating command
 
-Not just "some" commands. Every command that changes state — create, update, delete, move, clear — needs a dry-run mode. The output should show exactly what would happen:
+Not just "some" commands. Every command that changes state (create, update, delete, move, clear) needs a dry-run mode. The output should show exactly what would happen:
 
 ```bash
 $ craft delete abc123 --dry-run

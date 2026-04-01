@@ -8,7 +8,7 @@ The argument is that documentation is a lossy copy of the code. It drifts. A typ
 
 For CLIs, this means:
 
-**One canonical contract.** A `schema.json` or OpenAPI spec that defines every command, flag, payload shape, and error format. Everything else — help text, docs, skill files — is generated from or validated against this contract.
+**One canonical contract.** A `schema.json` or OpenAPI spec that defines every command, flag, payload shape, and error format. Everything else (help text, docs, skill files) is generated from or validated against this contract.
 
 **CI fails on drift.** If you add a flag to the CLI but don't update the schema, the build breaks. If the API changes a response shape but the CLI still expects the old one, the build breaks.
 
@@ -27,4 +27,4 @@ An agent can read this metadata and decide how much caution to exercise without 
 
 In [agent-to-bricks](https://github.com/nerveband/agent-to-bricks), the CLI has a `bricks schema --validate` command that compares the live CLI behavior against `cli/schema.json`. If anything is out of sync, it fails. This runs in CI on every commit.
 
-In [craft-cli](https://github.com/nerveband/craft-cli), this is on the roadmap. The CLI currently scores 0/3 on schema introspection — adding a `craft schema` command is the single highest-leverage improvement.
+In [craft-cli](https://github.com/nerveband/craft-cli), this is on the roadmap. The CLI currently scores 0/3 on schema introspection. Adding a `craft schema` command is the single highest-leverage improvement.

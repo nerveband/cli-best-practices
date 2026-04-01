@@ -30,7 +30,7 @@ A Go CLI for Craft.do documents. 30+ commands covering documents, blocks, folder
 - JSON is the default output format, not an afterthought
 - Dry-run coverage is comprehensive (move, blocks, tasks, folders, collections, comments, delete, clear)
 - Already has LLM-specific documentation (`docs/llm/`, `craft llm styles`)
-- Go binary — single file, no runtime dependencies, cross-platform via goreleaser
+- Go binary, single file, no runtime dependencies, cross-platform via goreleaser
 - Self-update with background version check notifications
 
 ## Gaps

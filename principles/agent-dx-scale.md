@@ -36,7 +36,7 @@ Can an agent discover what the CLI accepts at runtime?
 | 0 | Only `--help` text |
 |---|---------------------|
 | 1 | `--help --json` or a `describe` command for some surfaces |
-| 2 | Full schema for all commands — params, types, required fields — as JSON |
+| 2 | Full schema for all commands (params, types, required fields) as JSON |
 | 3 | Live schemas reflecting the current API version, including enums and nested types |
 
 ### 4. Context window discipline
@@ -92,6 +92,6 @@ Does the CLI ship knowledge in formats agents can consume?
 
 Not scored, but worth noting:
 
-- **MCP mode** (stdio JSON-RPC) — typed invocation, no shell escaping
-- **Headless auth** — env vars for credentials, no browser redirect
-- **Agent detection** — check for `AI_AGENT` env var and auto-switch output format
+- **MCP mode** (stdio JSON-RPC): typed invocation, no shell escaping
+- **Headless auth**: env vars for credentials, no browser redirect
+- **Agent detection**: check for `AI_AGENT` env var (via [`@vercel/detect-agent`](https://www.npmjs.com/package/@vercel/detect-agent)) and auto-switch output format
