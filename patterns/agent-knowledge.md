@@ -72,3 +72,9 @@ The `AI_AGENT` environment variable is emerging as a standard (via Vercel's [`@v
 - Suppress progress bars and spinners
 - Use structured error format
 - Skip interactive prompts entirely
+
+## Real-world: craft-cli and agent-to-bricks
+
+[craft-cli](https://github.com/nerveband/craft-cli) ships an AGENTS.md with guardrails ("always use --dry-run before delete"), exit code table, and a pitfalls section. It also has `craft schema` for machine-readable command discovery with safety metadata, plus a `prompts/` folder with implement/check/release session prompts for AI coding agents.
+
+[agent-to-bricks](https://github.com/nerveband/agent-to-bricks) takes this further with `bricks schema --validate` (CI-enforced contract validation), `bricks discover` (machine-readable site discovery), and `bricks init` (bootstraps CLAUDE.md and skill files for a new project). The repo ships three session prompts: `prompts/implement.md`, `prompts/check.md`, and `prompts/release.md`.

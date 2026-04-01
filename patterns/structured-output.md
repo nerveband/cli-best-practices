@@ -62,6 +62,10 @@ $ mycli list --fields id,title
 
 This matters more than you'd think. A full Craft document response might be 2,000 tokens. With `--fields id,title`, it's 50.
 
-## Real-world reference
+## Real-world references
 
 The [GitHub CLI (`gh`)](https://cli.github.com/) does this well. `gh issue list --json number,title,state` returns only those fields. `gh issue list` without `--json` returns a human-readable table. The non-TTY behavior is automatic.
+
+In [craft-cli](https://github.com/nerveband/craft-cli), JSON is the default output format. `--output-only <field>` and `--id-only` reduce output to just the fields an agent needs. `--json-errors` returns structured errors with error codes, messages, and hints. Exit codes are categorized: 0 success, 1 user error, 2 API error, 3 config error.
+
+In [agent-to-bricks](https://github.com/nerveband/agent-to-bricks), the error system uses a formal taxonomy (CONFIG exit 2, API exit 3, Validation exit 4, Conflict exit 5) with structured JSON shapes validated in CI.

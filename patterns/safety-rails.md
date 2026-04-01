@@ -63,3 +63,13 @@ API responses can contain prompt injection payloads. If a document title is "Ign
 - Don't eval or interpret data from API responses
 - When displaying data to the agent, clearly delineate it from CLI metadata
 - Consider sanitizing known injection patterns in fields the agent might act on
+
+## Real-world: craft-cli
+
+In [craft-cli](https://github.com/nerveband/craft-cli) v1.9.0, dry-run is a global `--dry-run` flag that works on all 14 mutating commands. When `--format json` is active, dry-run returns structured JSON:
+
+```json
+{"dry_run": true, "action": "delete", "target": {"id": "abc123", "title": "Meeting Notes", "reversible": true}}
+```
+
+Input hardening rejects path traversals (`../`), query params (`?`, `#`), percent-encoded attacks (`%2e`), and control characters in resource IDs. Error hints include `(retryable)` or `(not retryable)` so agents know whether to retry.

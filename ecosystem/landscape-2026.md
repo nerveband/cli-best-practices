@@ -56,6 +56,12 @@ Gaining adoption across Claude Code, Cursor, Gemini CLI, and others. YAML frontm
 
 | Repo | What |
 |------|------|
+| [nerveband/craft-cli](https://github.com/nerveband/craft-cli) | Craft.do documents. 30+ commands, schema introspection, 45/50 audit score. |
+| [nerveband/agent-to-bricks](https://github.com/nerveband/agent-to-bricks) | Bricks Builder bridge. 56 commands, contract-first, CI-validated schema. |
+| [nerveband/beeper-api-cli](https://github.com/nerveband/beeper-api-cli) | Cross-platform messaging CLI (WhatsApp, Telegram, Signal). |
+| [nerveband/yt-api-cli](https://github.com/nerveband/yt-api-cli) | YouTube Data API v3 CLI. |
+| [nerveband/mochi-cli](https://github.com/nerveband/mochi-cli) | Mochi.cards flashcard management. Built for LLM automation. |
+| [nerveband/cloak-agent](https://github.com/nerveband/cloak-agent) | Stealth browser automation for AI agents. |
 | [jaredpalmer/mogcli](https://github.com/jaredpalmer/mogcli) | Agent-friendly M365 CLI. By Jared Palmer (Vercel). |
 | [dl-alexandre/Google-Play-Developer-CLI](https://github.com/dl-alexandre/Google-Play-Developer-CLI) | Agent-friendly Play Console CLI. |
 | [zcaceres/builtwith-api](https://github.com/zcaceres/builtwith-api) | Shows the CLI + MCP dual-interface pattern. |

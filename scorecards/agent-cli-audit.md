@@ -1,10 +1,23 @@
 # Agent CLI Audit
 
+**By [Ashraf Ali](https://github.com/nerveband)** (original work)
+
 A runnable, pass/fail test spec for evaluating CLI agent-friendliness. Designed to be executed by an AI coding agent against any CLI binary.
 
-Unlike the Agent DX Scale (which is a subjective 0-3 rubric), this is a concrete checklist where each item can be verified by running a command and checking the output. An agent can score any CLI in under 5 minutes.
+Unlike the [Agent DX Scale](https://justin.poehnelt.com/posts/rewrite-your-cli-for-ai-agents/) (which is a subjective 0-3 rubric), this is a concrete checklist where each item can be verified by running a command and checking the output. An agent can score any CLI in under 5 minutes.
 
-Sourced from: building 10+ CLIs, the Agent DX Scale, Eric Zakariasson's 10 rules, CLIWatch skills protocol, InfoQ agent CLI patterns, GitLab glab #8177, Scalekit MCP benchmarks, ShipTypes contract-first philosophy, AgentDX linter rules, and field experience from craft-cli and agent-to-bricks.
+Validated against [craft-cli](https://github.com/nerveband/craft-cli) (scored 45/50) and informed by building 10+ CLIs including [agent-to-bricks](https://github.com/nerveband/agent-to-bricks), [beeper-api-cli](https://github.com/nerveband/beeper-api-cli), [yt-api-cli](https://github.com/nerveband/yt-api-cli), [mochi-cli](https://github.com/nerveband/mochi-cli), and [cloak-agent](https://github.com/nerveband/cloak-agent).
+
+### Sources that informed this framework
+
+- [Agent DX CLI Scale](https://justin.poehnelt.com/posts/rewrite-your-cli-for-ai-agents/) by Justin Poehnelt (the 7-axis rubric this extends into executable tests)
+- [Building CLIs for agents](https://x.com/ericzakariasson/status/2036762680401223946) by Eric Zakariasson (10 practical rules)
+- [CLI Skills Protocol](https://cliwatch.com/blog/designing-a-cli-skills-protocol) by CLIWatch (skills subcommand pattern)
+- [Patterns for AI Agent Driven CLIs](https://www.infoq.com/articles/ai-agent-cli/) by InfoQ (exit codes, non-interactive flags)
+- [GitLab CLI agent enhancement #8177](https://gitlab.com/gitlab-org/cli/-/work_items/8177) (--agent-info, --help --format json)
+- [MCP vs CLI benchmark](https://www.scalekit.com/blog/mcp-vs-cli-use) by Scalekit (cost and reliability numbers)
+- [ShipTypes](https://shiptypes.com/) by Boris Tane (contract-first philosophy)
+- [AgentDX linter](https://github.com/agentdx/agentdx) (MCP tool description rules)
 
 ---
 

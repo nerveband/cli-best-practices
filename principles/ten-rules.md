@@ -1,6 +1,8 @@
 # Ten rules for agent-friendly CLIs
 
-These come from Eric Zakariasson (Cursor), who posted them on [X in March 2026](https://x.com/ericzakariasson/status/2036762680401223946). 483K views. The list is short but nearly everything on it has bitten me at least once.
+**Source:** Eric Zakariasson (Cursor), posted on [X in March 2026](https://x.com/ericzakariasson/status/2036762680401223946). 483K views, 1,816 likes.
+
+The list is short but nearly everything on it has bitten me at least once across [craft-cli](https://github.com/nerveband/craft-cli), [agent-to-bricks](https://github.com/nerveband/agent-to-bricks), and the other CLIs I've built.
 
 ## 1. Make it non-interactive
 
