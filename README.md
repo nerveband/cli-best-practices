@@ -61,7 +61,7 @@ These aren't theoretical recommendations. Every pattern in this repo was tested 
 | [yt-api-cli](https://github.com/nerveband/yt-api-cli) | Go | YouTube Data API v3. Manage videos, playlists, uploads. | |
 | [mochi-cli](https://github.com/nerveband/mochi-cli) | Go | Mochi.cards flashcard management. Built for LLM automation. | |
 | [cloak-agent](https://github.com/nerveband/cloak-agent) | Go + TS | Stealth browser automation for AI agents. | |
-| [ai-happy-design](https://github.com/nerveband/ai-happy-design) | Go | Figma CLI for AI agents. | |
+| [ai-happy-design](https://github.com/nerveband/ai-happy-design) | Go | Figma CLI for AI agents. 144 commands, schema validation, design intelligence. | **50/50 audit, 21/21 DX** |
 | [zpick](https://github.com/nerveband/zpick) | Go | Single-keypress zmosh session launcher. | |
 | [drafts-applescript-cli](https://github.com/nerveband/drafts-applescript-cli) | Go | Drafts app CLI (fork). | |
 | [image_sense](https://github.com/nerveband/image_sense) | Python | AI image processing with EXIF metadata writing. | |
@@ -71,6 +71,7 @@ These aren't theoretical recommendations. Every pattern in this repo was tested 
 
 - **[Agent CLI Audit](scorecards/agent-cli-audit.md)** (original): 50-check executable test spec. Combines and extends patterns from all sources listed below into a single runnable framework.
 - **[craft-cli scorecard](scorecards/craft-cli.md)** (original): Real-world audit result showing the framework applied to a production CLI.
+- **[ahd-figma scorecard](scorecards/ahd-figma.md)** (original): First CLI to achieve a perfect 50/50 audit score and 21/21 DX scale.
 - **Patterns docs** (original synthesis): Each pattern doc combines learnings from my CLIs with community best practices, cited inline.
 
 ## Sources and citations
