@@ -25,13 +25,16 @@ For agent workflows, dry-run output should also be structured:
 }
 ```
 
-## --yes to skip confirmations
+## Explicit commitment for destructive work
 
 Interactive confirmations ("Are you sure? [y/N]") freeze agents. But you still want the safety net for humans. The pattern:
 
 - Default: prompt for confirmation on destructive actions
-- `--yes` or `-y`: skip the prompt
-- Agents always pass `--yes`; humans get the guardrail
+- Non-interactive contexts: never hang; fail with a structured error that says which explicit flag is required
+- `--yes`, `--commit`, or an ecosystem-standard `--force`: skip the prompt or commit the change
+- Agents pass the explicit flag only after dry-run or user approval; humans get the guardrail
+
+The [HN discussion of agent-native CLIs](https://news.ycombinator.com/item?id=48052333) pushed back on normalizing `--force` for agents because many Unix tools use it to mean "do the dangerous thing harder." For new CLIs, `--yes` or `--commit` often communicates intent better. If your ecosystem has already standardized on `--force`, document that convention and require dry-run guidance in `SKILL.md`.
 
 ## Idempotent operations
 

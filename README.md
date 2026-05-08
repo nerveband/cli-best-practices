@@ -11,7 +11,7 @@ By [Ashraf Ali](https://github.com/nerveband).
 ```
 principles/          Why these patterns matter
 patterns/            How to implement each one
-scorecards/          Score your own CLI (0-50 scale)
+scorecards/          Score your own CLI (0-85 scale, with legacy 0-50 baseline)
 ecosystem/           The 2026 landscape, repos, articles, benchmarks
 ```
 
@@ -19,20 +19,54 @@ ecosystem/           The 2026 landscape, repos, articles, benchmarks
 
 If you're building a CLI that agents will use, these are the things that matter most:
 
-1. **JSON by default.** Not as an option, as the default when piped. Human-readable output is for terminals.
-2. **No interactive prompts.** Every input is a flag. Prompts are a fallback, never the primary path.
-3. **Structured errors.** `{"error": {"code": "AUTH_FAILED", "message": "...", "hint": "Run: craft config add"}}`, not just "Error: something broke."
-4. **`--dry-run` everywhere.** Agents retry. Destructive commands without dry-run are time bombs.
-5. **Progressive discovery.** Don't dump your whole schema upfront. `mycli` shows subcommands, `mycli deploy --help` shows flags with examples.
-6. **Idempotent operations.** Running the same command twice returns "already done, no-op." Not a duplicate resource.
+1. **JSON by default.** Not as an afterthought. Keep data on stdout, diagnostics on stderr, and use one canonical convention such as `--json` or global `--format json`.
+2. **No interactive prompts.** Every input is a flag, env var, file, or stdin. Prompts are a human fallback, never the primary path.
+3. **Structured errors that teach.** Include `code`, `message`, `hint`, and valid enum values when validation fails.
+4. **Explicit mutation boundaries.** Agents retry. Use `--dry-run`, idempotency, and a clear destructive commitment convention such as `--yes`, `--commit`, or ecosystem-standard `--force`.
+5. **Bounded output.** Paginate, filter, summarize, and tell the agent how to narrow the next call.
+6. **Predictable vocabulary.** Use common verbs and flags consistently, and enforce banned aliases mechanically.
+7. **Three-layer introspection.** Provide human help, versioned machine-readable `agent-context`/schema, and task-oriented `SKILL.md`.
+8. **Async-aware execution.** `--wait`, `--timeout`, resume commands, and a durable jobs ledger beat making the agent write poll loops.
+9. **Persistent profiles.** Let agents reuse named identities/configurations across sessions with documented precedence.
+10. **Two-way I/O.** Route artifacts to stdout/files/webhooks and give agents a local feedback channel for friction.
+11. **API-native payload ergonomics.** Mirror the API's resource model, support nested payloads, first-class files, explicit encodings, transforms, and separate formatting for data vs. errors.
+12. **Domain depth.** For high-gravity APIs, add local sync/search, compound insight commands, provenance, and proof-of-behavior checks. Thin endpoint wrappers are the floor, not the ceiling.
 
 ## Scoring frameworks
 
-### Agent CLI Audit (50 checks, original)
+### Agent CLI Audit (85 checks, original)
 
-A runnable, pass/fail test spec I created for evaluating CLI agent-friendliness. Unlike the Agent DX Scale (which is a subjective 0-3 rubric), this is a concrete checklist where each item can be verified by running a command and checking the output. An agent can score any CLI in under 5 minutes. See [scorecards/agent-cli-audit.md](scorecards/agent-cli-audit.md).
+A runnable, pass/fail test spec I created for evaluating CLI agent-friendliness. Unlike the Agent DX Scale (which is a subjective 0-3 rubric), this is a concrete checklist where each item can be verified by running a command and checking the output. See [scorecards/agent-cli-audit.md](scorecards/agent-cli-audit.md).
 
-10 categories, 50 checks: discoverability, structured output, input flexibility, safety rails, error handling, context window discipline, predictability, agent knowledge, resilience, and distribution.
+17 categories, 85 checks: discoverability, structured output, input flexibility, safety rails, error handling, context window discipline, predictability, agent knowledge, resilience, distribution, three-layer introspection, persistent identity/config, two-way I/O, contract/generation discipline, Unix composability/restraint, API-native payload ergonomics, and domain depth/proof gates.
+
+This repo also ships [SKILL.md](SKILL.md), a compact entrypoint that agents can install or read before running the audit.
+
+## Use this as an agent skill
+
+Point your coding agent at [SKILL.md](SKILL.md) before auditing a CLI, or install it into the agent's skill system if your harness supports local `SKILL.md` files. The skill tells the agent to:
+
+1. Build or locate the CLI binary.
+2. Run root help, version, and one safe read command.
+3. Score the CLI with the 85-point audit.
+4. Use dry-run, local fixtures, or mocked credentials for mutating checks.
+5. Return a category table, evidence notes, and the top five highest-impact fixes.
+
+The skill is intentionally short. It should behave like a manpage for agents: enough workflow guidance to prevent blind guessing, without loading the entire repo into context.
+
+## 2026 agent-native upgrade
+
+The original audit focused on defensive readiness: structured output, non-interactive input, dry-run, bounded responses, and useful errors. This upgrade adds the compounding layer that emerged from newer agent-native CLIs and discussions:
+
+- **Schema-enforced consistency:** vocabulary and flags should be checked mechanically, not left to review.
+- **Three-layer introspection:** human help, versioned machine-readable schema/agent-context, and workflow-oriented skills.
+- **Async recovery:** `--wait`, timeouts, resume commands, and job ledgers.
+- **Persistent identity:** profiles and inspectable config precedence.
+- **Two-way I/O:** artifact delivery sinks plus local feedback capture.
+- **API-native ergonomics:** file arguments, explicit encodings, transforms, separate data/error formatting.
+- **Domain depth:** local sync/search, compound insight commands, provenance, competitor coverage, and proof-of-behavior gates.
+
+Thanks to the projects and discussions that sharpened this version: Trevin Chow's agent-native CLI principles, Cloudflare's CLI/local explorer work, HeyGen CLI, OpenAI CLI, CLI Printing Press, and the Hacker News thread that pushed on safety and Unix composability.
 
 ### Agent DX CLI Scale (0-21)
 
@@ -69,7 +103,7 @@ These aren't theoretical recommendations. Every pattern in this repo was tested 
 
 ## Original work in this repo
 
-- **[Agent CLI Audit](scorecards/agent-cli-audit.md)** (original): 50-check executable test spec. Combines and extends patterns from all sources listed below into a single runnable framework.
+- **[Agent CLI Audit](scorecards/agent-cli-audit.md)** (original): 85-check executable test spec with a legacy 50-check baseline. Combines and extends patterns from all sources listed below into a single runnable framework.
 - **[craft-cli scorecard](scorecards/craft-cli.md)** (original): Real-world audit result showing the framework applied to a production CLI.
 - **Patterns docs** (original synthesis): Each pattern doc combines learnings from my CLIs with community best practices, cited inline.
 
@@ -82,6 +116,10 @@ Everything in this repo cites its sources. Here's the full list:
 | Title | Author | Source |
 |-------|--------|--------|
 | [Rewrite Your CLI for AI Agents](https://justin.poehnelt.com/posts/rewrite-your-cli-for-ai-agents/) | Justin Poehnelt | Blog |
+| [10 Principles for Agent-Native CLIs](https://trevinsays.com/p/10-principles-for-agent-native-clis) | Trevin Chow | Blog |
+| [Building a CLI for all of Cloudflare](https://blog.cloudflare.com/cf-cli-local-explorer/) | Matt Taylor, Dimitri Mitropoulos, Dan Carter | Blog |
+| [OpenAI CLI](https://github.com/openai/openai-cli) | OpenAI | Repo |
+| [CLI Printing Press](https://github.com/mvanhorn/cli-printing-press) | Michael VanHorn | Repo |
 | [Building CLIs for agents](https://x.com/ericzakariasson/status/2036762680401223946) | Eric Zakariasson (Cursor) | X/Twitter |
 | [Ship Types, Not Docs](https://shiptypes.com/) | Boris Tane (Cloudflare) | Essay |
 | [Patterns for AI Agent Driven CLIs](https://www.infoq.com/articles/ai-agent-cli/) | InfoQ | Article |
@@ -97,6 +135,7 @@ Everything in this repo cites its sources. Here's the full list:
 | [skill.md explained](https://www.gitbook.com/blog/skill-md) | GitBook | Blog |
 | [BetterCLI.org](https://bettercli.org/) | BetterCLI | Reference |
 | [GitLab CLI agent enhancement](https://gitlab.com/gitlab-org/cli/-/work_items/8177) | GitLab | Issue |
+| [Principles for agent-native CLIs](https://news.ycombinator.com/item?id=48052333) | Hacker News | Discussion |
 
 ### Repos and tools
 
@@ -109,6 +148,9 @@ Everything in this repo cites its sources. Here's the full list:
 | [jaredpalmer/mogcli](https://github.com/jaredpalmer/mogcli) | Agent-friendly M365 CLI. |
 | [brwse/earl](https://github.com/brwse/earl) | AI-safe CLI with HCL template security. |
 | [@vercel/detect-agent](https://www.npmjs.com/package/@vercel/detect-agent) | AI agent runtime detection. |
+| [heygen-com/heygen-cli](https://github.com/heygen-com/heygen-cli) | Agent-first video API CLI with JSON stdout, schemas, async `--wait`, and bundled skill guidance. |
+| [openai/openai-cli](https://github.com/openai/openai-cli) | Official OpenAI API CLI with resource commands, data/error format controls, transforms, and first-class file argument expansion. |
+| [mvanhorn/cli-printing-press](https://github.com/mvanhorn/cli-printing-press) | Generator for agent-first Go CLIs plus MCP servers with local SQLite/FTS sync, compound commands, provenance, and proof gates. |
 
 ## Contributing
 
