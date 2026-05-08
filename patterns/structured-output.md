@@ -62,6 +62,33 @@ $ mycli list --fields id,title
 
 This matters more than you'd think. A full Craft document response might be 2,000 tokens. With `--fields id,title`, it's 50.
 
+## Separate data and error formatting
+
+Some CLIs need richer formatting than a single `--json` switch. The [OpenAI CLI](https://github.com/openai/openai-cli) exposes independent data and error format controls:
+
+```bash
+$ openai responses create --format json --format-error json
+```
+
+That separation is useful for agents because success and failure often take different paths. A human might want pretty output for data while keeping errors machine-readable in CI, or an agent might request raw data while using structured JSON errors for recovery.
+
+Useful formats:
+
+- `json` for normal structured automation.
+- `jsonl` for streams or batches.
+- `raw` when the exact API payload matters.
+- `yaml` for humans editing structured inputs or outputs.
+
+## Built-in transforms
+
+Field selection is the simple case. A transform flag handles nested extraction without forcing the agent to spend another shell call on `jq` or a custom script:
+
+```bash
+$ mycli resource list --format json --transform 'data.0.id'
+```
+
+The OpenAI CLI uses [GJSON syntax](https://github.com/tidwall/gjson/blob/master/SYNTAX.md) for `--transform` and `--transform-error`. The broader best practice is not the specific syntax; it is making common projection operations first-class, documented, and consistent for both data and error streams.
+
 ## Real-world references
 
 The [GitHub CLI (`gh`)](https://cli.github.com/) does this well. `gh issue list --json number,title,state` returns only those fields. `gh issue list` without `--json` returns a human-readable table. The non-TTY behavior is automatic.

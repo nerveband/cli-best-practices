@@ -4,6 +4,8 @@ Boris Tane (Cloudflare) published [shiptypes.com](https://shiptypes.com/) with a
 
 The argument is that documentation is a lossy copy of the code. It drifts. A type definition can't drift because it IS the code. When an agent has types, it reaches the correct implementation on the first attempt. When it only has prose docs, it needs multiple error-recovery cycles to get there.
 
+Cloudflare's [2026 CLI rebuild](https://blog.cloudflare.com/cf-cli-local-explorer/) shows the same principle applied to a large product surface. Their TypeScript schema is used to generate CLI commands, SDKs, Terraform, MCP, docs, and agent skills, with schema-layer guardrails for naming and flags. The key lesson for smaller CLIs is the same: enforce consistency before review, not after a human notices drift.
+
 ## In practice
 
 For CLIs, this means:
@@ -22,6 +24,12 @@ For CLIs, this means:
 An agent can read this metadata and decide how much caution to exercise without being told by a human.
 
 **Machine-readable capability discovery.** Instead of scraping `--help` text (which is designed for human eyes), the agent calls `mycli schema` and gets a structured JSON manifest of everything the CLI can do.
+
+**Vocabulary rules.** The contract should define canonical verbs and flags and reject banned alternatives in CI. For example: `get`, not `info`; `list`, not only `ls`; one JSON flag; one destructive commitment convention; one pagination vocabulary.
+
+**Local/remote scope.** If a CLI can operate against local simulation and remote production resources, the contract should mark that scope and every response should repeat it. Cloudflare's Local Explorer makes local resources inspectable through an API mirror, which gives agents a safe verification path before touching remote state.
+
+**Skill generation.** `SKILL.md`, `AGENTS.md`, examples, and machine-readable `agent-context` should either be generated from the contract or validated against it. Agent guidance is part of the product surface, not a doc afterthought.
 
 ## How I use this
 
