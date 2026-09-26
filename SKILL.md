@@ -1,35 +1,40 @@
 ---
-name: cli-best-practices-audit
-description: Audit a command line tool for AI-agent usability, agent-native workflows, structured output, safety rails, introspection, async recovery, profiles, artifacts, API payload ergonomics, local data layers, proof gates, and skill packaging. Use when asked to review, score, improve, or harden a CLI for coding agents or automation.
+name: cli-best-practices
+description: Audit a command line tool for AI-agent usability and produce an evidence-backed score with prioritized fixes. Covers structured output, error kinds and exit codes, non-interactive safety, declared command effects and retry safety, bounded output, schema introspection, upstream API contract drift, remote-data trust boundaries, profiles, async jobs, and skill packaging. Use when asked to review, score, improve, or harden a CLI for coding agents, automation, or MCP parity.
+license: MIT
 ---
 
 # CLI Best Practices Audit
 
-Use this skill to evaluate a CLI that an AI agent will call from a shell. The main checker is [scorecards/agent-cli-audit.md](scorecards/agent-cli-audit.md).
+Use this skill to evaluate a CLI that an AI agent will call from a shell. The checklist is [scorecards/agent-cli-audit.md](scorecards/agent-cli-audit.md). The external standard it aligns with is [the CLI Spec](https://clispec.dev/).
 
-## Fast Workflow
+## Workflow
 
-1. Identify the binary and build it if needed.
-2. Run `$CLI --help`, `$CLI version` or `$CLI --version`, and one safe read command.
-3. Run the 85-point audit in `scorecards/agent-cli-audit.md`.
-4. Use `--dry-run`, `--local`, test fixtures, or mocked credentials for mutating commands.
-5. Record pass/fail for each check with one evidence command or observation.
-6. Produce a category table and a prioritized fix list.
+1. Identify the binary and build it if needed. Record the exact version.
+2. Run `$CLI --help`, `$CLI --version` (or `$CLI version`), and `$CLI schema` if it exists. Then run one safe read command.
+3. If the CLI publishes a CLI Spec schema, validate it (`clispec score $CLI`, or `make check` in the clispec repo) and record the result.
+4. Work through all 85 checks. Record pass, fail, or declared exemption for each, with one evidence command or observation.
+5. For anything that writes, use `--dry-run`, local fixtures, a sandbox account, or mocked credentials. Never touch real data without explicit user approval.
+6. Produce the report below: category table, top five fixes, evidence notes.
 
-## What To Look For First
+## Scoring rules
 
-- JSON on stdout and structured errors on stderr.
-- Non-interactive execution: no prompts in non-TTY contexts.
-- One canonical vocabulary: `list`, `get`, `create`, `update`, `delete`; one JSON flag; one confirmation/commit convention.
-- Three-layer introspection: human help, versioned `agent-context` or schema JSON, and a task-oriented `SKILL.md`.
-- Safe retries: idempotent mutations, `--dry-run`, explicit destructive commitment, async `--wait`, and a durable `jobs` ledger.
-- Persistent configuration: profiles, documented precedence, redacted config source inspection.
-- Artifact routing and feedback: `--deliver stdout|file:<path>|webhook:<url>` where relevant, plus local feedback capture.
-- API-native ergonomics: resource-based command mapping, separate data/error formats, transforms, and first-class file arguments with explicit encodings.
-- Domain depth: local sync/search for high-gravity resources, compound insight commands, provenance, competitor feature coverage, and proof-of-behavior gates.
-- Contract discipline: schema/codegen or CI validation that prevents docs, skills, and command behavior from drifting.
+- **Behavior beats presence.** A flag that exists but does nothing, or a self-audit command that only checks flag names, does not pass. Run the command and observe the result.
+- **Declared exemptions pass; silent gaps fail.** A check that cannot apply (pagination on a single-record command, `--wait` with no async jobs) passes only when the CLI's schema or docs declare why, for example `"cardinality": "single"`. List every exemption in the report.
+- **Wrappers answer to their upstream.** For API wrappers, spot-check at least one request parameter name and one response shape against the provider's current docs.
 
-## Reporting Template
+## What to look for first
+
+- Data on stdout, diagnostics on stderr, no ANSI when piped, and an explicit format flag that always wins.
+- A fixed set of error kinds with declared exit codes, and a JSON error envelope when JSON is selected.
+- No hangs without a TTY: prompts become a refusal naming the bypass flag.
+- Every command declares its effects (`read_only`, `idempotent`, `non_idempotent`) explicitly, not inferred from its name.
+- Unbounded lists paginate server-side and say when output is partial.
+- A `schema` command that works with no auth, config, or network.
+- Secrets never required on argv.
+- Remote content preserved and labeled, never executed or followed.
+
+## Report template
 
 ```markdown
 # Agent CLI Audit: <CLI>
@@ -37,51 +42,49 @@ Use this skill to evaluate a CLI that an AI agent will call from a shell. The ma
 Binary tested: `<path-or-command>`
 Version: `<version>`
 Date: `<YYYY-MM-DD>`
+CLI Spec: `<conformant to 0.2 | 0.3 candidate | not published | failed: reason>`
 
-| Category | Score |
-|----------|-------|
-| Discoverability | /7 |
-| Structured output | /6 |
-| Input flexibility | /5 |
-| Safety rails | /6 |
-| Error handling | /7 |
-| Context discipline | /5 |
-| Predictability | /7 |
-| Agent knowledge | /7 |
-| Resilience | /7 |
-| Distribution | /5 |
-| Three-layer introspection | /5 |
-| Persistent identity/config | /5 |
-| Two-way I/O/artifacts | /5 |
-| Contract/generation discipline | /5 |
-| Unix composability/restraint | /5 |
-| API-native payload ergonomics | /5 |
-| Domain depth/proof gates | /5 |
-| Total | /85 |
+| Category | Score | Exemptions |
+|----------|-------|------------|
+| Discoverability | /7 | |
+| Structured output | /6 | |
+| Input flexibility | /5 | |
+| Safety rails | /6 | |
+| Error handling | /7 | |
+| Context discipline | /5 | |
+| Predictability | /7 | |
+| Agent knowledge | /7 | |
+| Resilience | /7 | |
+| Distribution | /5 | |
+| Three-layer introspection | /5 | |
+| Persistent identity/config | /5 | |
+| Two-way I/O/artifacts | /5 | |
+| Contract/generation discipline | /5 | |
+| Unix composability/restraint | /5 | |
+| API-native payload ergonomics | /5 | |
+| Domain depth/proof gates | /5 | |
+| Total | /85 | |
 
 ## Highest-impact fixes
 
-1. <fix> - <why it matters> - <checks gained>
-2. <fix> - <why it matters> - <checks gained>
-3. <fix> - <why it matters> - <checks gained>
-4. <fix> - <why it matters> - <checks gained>
-5. <fix> - <why it matters> - <checks gained>
+1. <fix>: <why it matters> (<checks gained>)
+2. <fix>: <why it matters> (<checks gained>)
+3. <fix>: <why it matters> (<checks gained>)
+4. <fix>: <why it matters> (<checks gained>)
+5. <fix>: <why it matters> (<checks gained>)
 
 ## Evidence notes
 
-- `<command>` -> <observed behavior>
-- `<command>` -> <observed behavior>
+- `<command>`: <observed behavior>
+- `<command>`: <observed behavior>
 ```
 
-## Source Guidance
+## Sources to cite
 
-Use and cite the repo's source list when recommending non-obvious changes:
+Cite these when a recommendation is not obvious:
 
-- Trevin Chow's "10 Principles for Agent-Native CLIs" for table-stakes vs. compounding checks, three-layer introspection, async ledgers, profiles, delivery, and feedback.
-- Cloudflare's "Building a CLI for all of Cloudflare" for schema-layer vocabulary enforcement, consistent `--json`, local/remote signaling, and local explorer APIs.
-- `heygen-com/heygen-cli` for JSON-first behavior, request/response schemas, non-interactive auth, async `--wait`, stable exit codes, and bundled `SKILL.md`.
-- `openai/openai-cli` for resource-based API command structure, independently configurable success/error formats, JSONL/raw/YAML output modes, GJSON-style transforms, `@file` payload expansion, explicit `@file://` and `@data://` encodings, and debug-log secret warnings.
-- `mvanhorn/cli-printing-press` for local SQLite/FTS sync, `--data-source` control, compound insight commands, competitor feature absorption, provenance manifests, dogfood/proof-of-behavior gates, auth doctor, and anti-gaming rules.
-- The Hacker News discussion for safety counterpoints: avoid normalizing careless `--force`, consider `--yes` or `--commit`, preserve Unix composability, and prefer a skill-as-manpage over a separate agent-only CLI.
-
-Do not run destructive commands without a dry-run, local fixture, or explicit user approval.
+- [The CLI Spec](https://clispec.dev/) for output kinds, declared effects, cardinality, error kinds with exit codes, non-TTY refusal, idempotency keys, and bounded output. v0.2 is frozen; v0.3 is a candidate.
+- [clig.dev](https://clig.dev/) for general CLI conventions and human defaults.
+- [Agent Skills specification](https://agentskills.io/specification) for `SKILL.md` structure.
+- [MCP tools specification](https://modelcontextprotocol.io/specification/2026-07-28/server/tools) for `outputSchema`, `structuredContent`, `isError`, and tool annotations when the CLI also ships an MCP surface.
+- The [landscape](ecosystem/landscape-2026.md) for async jobs, profiles, delivery, payload ergonomics, local data layers, and the safety counterpoints from the Hacker News discussion.

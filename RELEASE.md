@@ -1,6 +1,26 @@
 # Release Notes
 
-## Agent-Native CLI Checker Upgrade
+## Audit v3: Standards Alignment (September 2026)
+
+This release aligns the repo with the standards published in 2026 and corrects advice that aged badly. The audit keeps its 85 checks and 17 categories, so earlier scores stay comparable.
+
+### What changed
+
+- **CLI Spec alignment.** Contract-first design, structured output, and safety rails now follow [the CLI Spec](https://clispec.dev/): declared `effects`, `output_kind`, and `cardinality`; error kinds with declared exit codes; human errors in text mode; non-TTY refusal with `confirmation_required`; idempotency keys; `changed` in write results; in-band truncation metadata. v0.2 is frozen and v0.3 is a candidate; the docs say which is which.
+- **Declared exemptions.** A check that can't apply to a command passes only when the CLI declares why. Undeclared gaps fail. Flag presence without behavior fails.
+- **Safe retries rewritten.** An outcome table replaces "make every command idempotent." Client-side check-then-create no longer counts as idempotency.
+- **Trust boundary replaces sanitization.** Remote data is preserved, labeled, and never executed, instead of filtered for known injection patterns. The Agent DX Scale's safety level 3 changes accordingly.
+- **Secrets off argv.** Check 3.3 now fails CLIs that only accept secrets as command-line flags.
+- **Upstream contract drift.** New guidance and audit criteria (10.3, 14.2) for API wrappers: pin the provider's spec, diff it on a schedule, and test request encoding and response decoding against fixtures.
+- **Rate limits.** Check 9.3 requires passing through `Retry-After` and budget scope.
+- **Agent Skills spec.** `SKILL.md` guidance and check 8.6 follow the [Agent Skills specification](https://agentskills.io/specification). This repo's own skill is renamed from `cli-best-practices-audit` to `cli-best-practices` to match its directory, as the spec requires. If you installed it under the old directory name, rename the directory.
+- **MCP updated.** The CLI vs MCP comparison now reflects the [2026-07-28 MCP specification](https://blog.modelcontextprotocol.io/posts/2026-07-28/) and maps CLI Spec declarations to MCP tool fields and annotations.
+- **`AI_AGENT` downgraded.** Agent detection is a proposal, not a standard, and should never change the output contract.
+- **Self-update narrowed.** Checksums required, no automatic updates, no checks in CI, and package-manager installs exempt.
+- **craft-cli scorecard.** The v1.9.0 scores are kept as history, with open findings from a September 2026 review of v1.12.0 for the next audit.
+- **README rewritten** for faster orientation; the full source list moved to the [landscape](ecosystem/landscape-2026.md#sources).
+
+## Agent-Native CLI Checker Upgrade (May 2026)
 
 This release upgrades the CLI checker from a legacy 50-point readiness audit to an 85-point agent-native audit.
 

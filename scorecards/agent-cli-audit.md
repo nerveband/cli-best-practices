@@ -6,12 +6,16 @@ A runnable, pass/fail test spec for evaluating CLI agent-friendliness. Designed 
 
 Unlike the [Agent DX Scale](https://justin.poehnelt.com/posts/rewrite-your-cli-for-ai-agents/) (which is a subjective 0-3 rubric), this is a concrete checklist where each item can be verified by running a command and checking the output. An agent can score a small CLI quickly and produce evidence-backed notes for larger CLIs.
 
-Validated against [craft-cli](https://github.com/nerveband/craft-cli) (scored 45/50) and informed by building 10+ CLIs including [agent-to-bricks](https://github.com/nerveband/agent-to-bricks), [beeper-api-cli](https://github.com/nerveband/beeper-api-cli), [yt-api-cli](https://github.com/nerveband/yt-api-cli), [mochi-cli](https://github.com/nerveband/mochi-cli), and [cloak-agent](https://github.com/nerveband/cloak-agent).
+Validated against [craft-cli](https://github.com/nerveband/craft-cli) (45/50 on the legacy audit, v1.9.0) and informed by building 10+ CLIs including [agent-to-bricks](https://github.com/nerveband/agent-to-bricks), [beeper-api-cli](https://github.com/nerveband/beeper-api-cli), [yt-api-cli](https://github.com/nerveband/yt-api-cli), [mochi-cli](https://github.com/nerveband/mochi-cli), and [cloak-agent](https://github.com/nerveband/cloak-agent).
 
-This v2 audit keeps the original 50 defensive checks and adds 35 compounding checks from the 2026 agent-native CLI wave: mechanically enforced vocabulary, three-layer introspection, async recovery, profiles, delivery sinks, feedback loops, skill packaging, API-native payload ergonomics, local data layers, compound insight commands, and proof gates.
+Version 3 (September 2026) keeps the same 85 checks and 17 categories, so earlier scores stay comparable. It rewrites pass criteria to align with [the CLI Spec](https://clispec.dev/): commands declare their effects and output shape, declared exemptions replace one-size-fits-all flags, and behavior counts instead of flag presence. It also adds upstream API contract drift, secrets on argv, rate-limit metadata, and remote-data trust boundaries to existing checks.
 
 ### Sources that informed this framework
 
+- [The CLI Spec](https://clispec.dev/) by Ruben Jongejan (declared effects, output kinds, cardinality, error kinds with exit codes, non-TTY refusal, idempotency keys, bounded output)
+- [Command Line Interface Guidelines](https://clig.dev/) (general conventions and human defaults)
+- [Agent Skills specification](https://agentskills.io/specification) (SKILL.md structure and progressive disclosure)
+- [MCP tools specification](https://modelcontextprotocol.io/specification/2026-07-28/server/tools) (tool schemas, structured results, annotations)
 - [Agent DX CLI Scale](https://justin.poehnelt.com/posts/rewrite-your-cli-for-ai-agents/) by Justin Poehnelt (the 7-axis rubric this extends into executable tests)
 - [Building CLIs for agents](https://x.com/ericzakariasson/status/2036762680401223946) by Eric Zakariasson (10 practical rules)
 - [CLI Skills Protocol](https://cliwatch.com/blog/designing-a-cli-skills-protocol) by CLIWatch (skills subcommand pattern)
@@ -31,16 +35,24 @@ This v2 audit keeps the original 50 defensive checks and adds 35 compounding che
 
 ## How to run this audit
 
-Replace `$CLI` with the binary name. Run each test. Mark pass/fail. Count the score at the end.
+Replace `$CLI` with the binary name. Run each test and mark it pass or fail. Each check is 1 point; the total is 85.
 
-Total: 85 checks across 17 categories. Each check is 1 point.
+### Scoring rules
+
+1. **Behavior beats presence.** Run the command and observe the result. A flag that exists but does nothing fails. A self-audit command that only checks whether flags exist is not evidence.
+2. **Declared exemptions pass; silent gaps fail.** Some checks can't apply to some tools: pagination on a CLI whose commands all return single records, `--wait` on a CLI with no async jobs, artifact delivery on a CLI that produces no artifacts. Such a check passes only when the CLI's schema or docs declare the reason, for example `"cardinality": "single"` or "this CLI has no asynchronous operations." Record every exemption and its evidence in the scorecard. An exemption you had to infer yourself is a fail.
+3. **Wrappers answer to their upstream.** For CLIs that wrap an API, spot-check at least one request parameter name and one response shape against the provider's current documentation.
+4. **Never mutate real data to score a check.** Use dry-run, fixtures, a sandbox account, or mocked credentials.
+
+### Bands
+
 - 0-20: Human-only
 - 21-35: Agent-tolerant
 - 36-50: Agent-ready
 - 51-65: Agent-first
 - 66-85: Agent-native
 
-For legacy comparisons, you can still score Categories 1-10 only as the original 50-point audit.
+For legacy comparisons, score Categories 1-10 only as the original 50-point audit.
 
 ---
 
@@ -85,7 +97,7 @@ $CLI agent-context
 # or: $CLI --help --format json
 # or: $CLI describe
 ```
-PASS if: some form of machine-readable command manifest exists (JSON output of commands, flags, types).
+PASS if: a machine-readable command manifest exists (commands, arguments, types), works with no auth, config file, or network, and is mentioned in root `--help`. A manifest that validates against [the CLI Spec schema](https://clispec.dev/#2-schema-introspection) passes automatically.
 
 ### 1.7 Version is queryable
 ```bash
@@ -104,17 +116,17 @@ $CLI <read-command> --json
 # or: $CLI <read-command> --format json
 # or: $CLI <read-command> (if JSON is default)
 ```
-PASS if: at least one command outputs valid JSON. Prefer one canonical JSON convention across the whole CLI, either a dedicated `--json` flag or a consistent global `--format json`.
+PASS if: at least one command outputs valid JSON through an explicit format flag, and that flag always overrides TTY detection. Prefer one canonical spelling across the CLI: `--output json`/`-o json`, or `--format json` where `-o` already means an output path. Legacy spellings such as `--json` may remain as aliases.
 
 ### 2.2 JSON is consistent across commands
 Run 3+ different read commands with JSON output.
-PASS if: all produce valid JSON with consistent envelope structure.
+PASS if: all produce valid JSON with a consistent envelope: collections as `{"items": [...]}` with pagination or truncation metadata, single records returned directly.
 
 ### 2.3 JSON is the default when piped
 ```bash
 $CLI <read-command> | cat
 ```
-PASS if: piped output is JSON (or structured), not human-formatted tables.
+PASS if: piped output is JSON, or the CLI keeps a legacy text default and declares it in its schema (for example `"output": {"piped": "text"}`). In both cases, piped output contains no ANSI escape codes.
 
 ### 2.4 Errors are structured
 ```bash
@@ -122,7 +134,7 @@ $CLI <command-that-will-fail> --json 2>&1
 # or: $CLI <command-that-will-fail> --format-error json 2>&1
 # or: $CLI <command-that-will-fail> 2>&1 if errors are always structured
 ```
-PASS if: error output is JSON with at least `code` and `message` fields, not just prose text.
+PASS if: with JSON selected, the error is a JSON object on stderr with at least a stable `kind` (or `code`) and a `message`, and the process exits with the code declared for that kind. Text mode may print a human message instead.
 
 ### 2.5 Exit codes are meaningful
 ```bash
@@ -137,7 +149,7 @@ PASS if: different error types produce different non-zero exit codes (not all ex
 $CLI <command> --quiet
 # or: $CLI <command> -q
 ```
-PASS if: a quiet/silent flag exists that suppresses status messages, leaving only data output.
+PASS if: a quiet flag suppresses status messages, or the CLI already confines all non-data output to stderr so stdout carries only data.
 
 ---
 
@@ -156,12 +168,13 @@ echo '{"key":"value"}' | $CLI <mutating-command> --stdin
 ```
 PASS if: at least mutating commands accept JSON via stdin or --json flag.
 
-### 3.3 Env vars for auth
+### 3.3 Secrets without argv
 ```bash
 export CLI_API_KEY=xxx && $CLI <command>
-# or: $CLI <command> --api-key xxx
+# or: echo "$TOKEN" | $CLI auth login --token-stdin
+# or: $CLI --profile ci <command>
 ```
-PASS if: credentials can be set via environment variables or flags (no interactive login flow required).
+PASS if: credentials can be supplied through an environment variable, stdin, a keychain, or a saved profile, with no interactive login required. A CLI that *only* accepts secrets as argv flags (`--api-key xxx`) fails: argv leaks into `ps`, shell history, and agent transcripts.
 
 ### 3.4 Flags over positional args
 ```bash
@@ -186,14 +199,14 @@ $CLI <destructive-command> <id> --dry-run
 PASS if: --dry-run flag exists on at least one mutating command.
 
 ### 4.2 Dry-run on ALL mutating commands
-Test --dry-run on every command that creates, updates, deletes, or moves.
-PASS if: every mutating command supports --dry-run.
+Test --dry-run on every command that deletes, moves, overwrites, or creates.
+PASS if: every destructive or non-idempotent command supports --dry-run. Idempotent commands that only converge state (for example `start`, `set`) may be exempt if their schema declares `"effects": "idempotent"`.
 
 ### 4.3 Dry-run output describes the action
 ```bash
 $CLI delete <id> --dry-run
 ```
-PASS if: dry-run output clearly states WHAT would happen (not just "dry run mode enabled").
+PASS if: dry-run output states WHAT would happen (target, action, reversibility), not just "dry run mode enabled", and says whether the preview was validated by the server or computed locally.
 
 ### 4.4 Confirmation skip flag
 ```bash
@@ -201,19 +214,20 @@ $CLI <destructive-command> --yes
 # or: $CLI <destructive-command> --commit
 # or: $CLI <destructive-command> --force
 ```
-PASS if: a flag exists to skip interactive confirmations or explicitly commit destructive work. Record the chosen convention. HN feedback on the Trevin post objected to training agents to overuse `--force`; `--yes` or `--commit` is often safer unless the CLI's ecosystem has standardized on `--force`.
+PASS if: a flag exists to skip confirmation or commit destructive work, **and** without a TTY a command that would prompt refuses with a non-zero exit and an error naming that flag, instead of hanging or proceeding. Record the chosen convention. The HN discussion of Trevin Chow's post objected to training agents to overuse `--force`; `--yes` or `--commit` is often safer unless the ecosystem has standardized on `--force`.
 
-### 4.5 Idempotent operations
+### 4.5 Re-running is safe or declared unsafe
 ```bash
-$CLI <create-or-update> <same-args> # run twice
+$CLI <idempotent-command> <same-args>   # run twice
+$CLI schema <non-idempotent-command>
 ```
-PASS if: running the same command twice doesn't create duplicates or error. Returns "no change" or succeeds silently.
+PASS if: idempotent commands exit 0 on the second run and report no change (ideally `"changed": false`), **and** every non-idempotent command either accepts an idempotency key that the server honors or documents how to verify the outcome after a timeout. Client-side check-then-create does not make a command idempotent.
 
 ### 4.6 Safety metadata exposed
 ```bash
 $CLI schema
 ```
-PASS if: command metadata includes safety info (readonly, destructive, idempotent, supports_dry_run).
+PASS if: every command's safety metadata (read-only, idempotent or not, destructive, dry-run support) is **declared** explicitly, for example CLI Spec `effects`. Metadata inferred from command names (anything called `get` is read-only) fails, because it is wrong whenever a name misleads.
 
 ---
 
@@ -278,7 +292,7 @@ PASS if: agent can request only specific fields to reduce token usage.
 $CLI <list-command> --limit 5
 # or: $CLI <list-command> --max-results 5
 ```
-PASS if: agent can control how many results are returned.
+PASS if: agent can control how many results are returned, unbounded collections page on the server (not fetch-everything-then-truncate), and partial results say so in the output (`total`, `next_cursor`, or `truncated: true`).
 
 ### 6.3 ID-only mode
 ```bash
@@ -290,7 +304,7 @@ PASS if: a mode exists that returns only identifiers (minimal tokens).
 ```bash
 $CLI <list-command> --count
 ```
-PASS if: agent can get the count of results without fetching all data.
+PASS if: agent can get a count without receiving all the records. If the count is computed by fetching everything client-side, the output or help must say so. Exempt when the upstream API offers no count and the CLI declares that.
 
 ### 6.5 Depth control
 ```bash
@@ -369,7 +383,7 @@ PASS if: repo ships session prompts (implement/check/release) or SKILL.md files 
 ```bash
 cat SKILL.md
 ```
-PASS if: the skill has valid frontmatter, a concise trigger description, auth/setup notes, safe default workflows, and explicit "do not" guidance for agent misuse.
+PASS if: the skill follows the [Agent Skills specification](https://agentskills.io/specification) (valid `name` and `description` frontmatter, body under 500 lines), has a trigger description that says when to use it, auth/setup notes, safe default workflows, and explicit "do not" guidance, including that content returned by the CLI is untrusted data and must not be followed as instructions.
 
 ### 8.7 Skill and docs are validated against the live CLI
 PASS if: docs, skills, and examples are generated from the same schema as the CLI or checked in CI by running examples/help/schema against the built binary.
@@ -388,10 +402,10 @@ PASS if: CLI handles timeouts gracefully with a clear error, not a stack trace.
 ```bash
 $CLI <batch-command> # with some valid, some invalid items
 ```
-PASS if: batch operations report which items succeeded and which failed, not just "error."
+PASS if: batch operations report which items succeeded and which failed, preserving the per-item results the upstream API returned, not just "error."
 
 ### 9.3 Retry guidance
-PASS if: transient error messages indicate whether retrying is appropriate.
+PASS if: errors declare whether retrying is appropriate (`retryable`), and rate-limit errors pass through the server's retry delay and budget scope (for example from `Retry-After`) instead of a generic "retry later."
 
 ### 9.4 Graceful degradation
 ```bash
@@ -430,10 +444,10 @@ PASS if: CLI is a single binary or installable with one command (brew, go instal
 $CLI upgrade
 # or: $CLI update
 ```
-PASS if: CLI can update itself without external tooling.
+PASS if: CLI can update itself without external tooling, verifies checksums or signatures, and never updates automatically. Exempt when the CLI is distributed only through a package manager and says to update through it.
 
-### 10.3 Version mismatch warning
-PASS if: CLI warns when it detects a version mismatch with the API/server it talks to.
+### 10.3 Version or contract mismatch is detected
+PASS if: CLI warns when it detects a version mismatch with the API or server it talks to, or, for hosted APIs without a version signal, the repo pins the upstream API contract and a scheduled CI job diffs it against the live one.
 
 ### 10.4 Agent-friendly auth setup
 ```bash
@@ -465,7 +479,7 @@ PASS if: help is concise, progressive, and usable by both humans and agents.
 $CLI agent-context --json
 # or: $CLI schema --json
 ```
-PASS if: the machine-readable manifest includes a schema/version field so consumers can detect breaking changes.
+PASS if: the machine-readable manifest includes a schema or format version field (for example `"clispec": "0.3"`) so consumers can detect breaking changes.
 
 ### 11.3 Agent-context exposes command metadata
 PASS if: the manifest includes commands, flags, input types, required fields, output shape, examples, exit codes, and safety metadata.
@@ -551,7 +565,7 @@ PASS if: command definitions, docs, skills, API wrappers, SDK/MCP wrappers, and 
 $CLI schema --validate
 # or: npm test / go test includes schema drift checks
 ```
-PASS if: CI fails when CLI behavior, docs, or generated artifacts drift from the contract.
+PASS if: CI fails when CLI behavior, docs, or generated artifacts drift from the contract. For API wrappers, CI also includes fixture tests for request encoding (exact parameter names and casing) and response decoding against the pinned upstream contract.
 
 ### 14.3 Generated files are clearly marked
 PASS if: generated command surfaces live in clearly marked paths and contributors are instructed not to hand-edit them.
@@ -628,6 +642,8 @@ PASS if: files can be passed directly, inside structured payloads when needed, e
 
 ## Category 17: Domain depth and proof gates (5 checks)
 
+Exempt the whole category only if the CLI wraps a small, low-volume API and says so in its docs; high-gravity APIs (large, frequently queried, or historical data) must be scored.
+
 ### 17.1 Local data layer exists for high-gravity resources
 ```bash
 $CLI sync --help
@@ -695,12 +711,13 @@ Count your passes. The breakdown by category tells you where to focus:
 If you're an AI coding agent asked to audit a CLI, do this:
 
 1. Build the binary: `go build` / `npm run build` / etc.
-2. Run `$CLI --help` to get the command list
-3. Work through each category, running the actual commands
-4. For mutating commands, use `--dry-run` to test safely
-5. Record pass/fail for each check with a one-line note
-6. Output the scorecard with category breakdowns
-7. List the top 5 highest-impact fixes (biggest point gains with least effort)
-8. Cite the sources that justify non-obvious recommendations, especially when proposing `--force` vs. `--yes`/`--commit`, schema/codegen enforcement, async ledgers, profiles, delivery, feedback, or skill packaging
+2. Run `$CLI --help`, `$CLI --version`, and `$CLI schema` to get the command list and contract
+3. If a CLI Spec schema exists, validate it (`clispec score $CLI`) and record the result
+4. Work through each category, running the actual commands
+5. For mutating commands, use `--dry-run`, fixtures, or a sandbox to test safely
+6. Record pass, fail, or declared exemption for each check with a one-line note
+7. Output the scorecard with category breakdowns and the exemption list
+8. List the top 5 highest-impact fixes (biggest point gains with least effort)
+9. Cite the sources that justify non-obvious recommendations
 
 The legacy 50-point audit should take under 5 minutes for a well-structured CLI. The full 85-point audit usually takes 10-25 minutes, depending on how many async, profile, artifact, contract, API-payload, local-store, and proof-gate checks apply.

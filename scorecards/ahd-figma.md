@@ -41,9 +41,9 @@
 
 ## Multi-Surface Readiness
 
-- [x] **MCP (stdio JSON-RPC)** — `ahd-figma mcp` via mcp-go, with 4 design intelligence prompts
-- [x] **Extension/plugin install** — `ahd-figma register` auto-configures Claude Code, Claude Desktop, Cursor, Windsurf, VS Code, Zed
-- [x] **Headless auth** — env vars (`AHD_CHANNEL`, `PORT`), TOML config, no browser redirect
+- [x] **MCP (stdio JSON-RPC)**: `ahd-figma mcp` via mcp-go, with 4 design intelligence prompts
+- [x] **Extension/plugin install**: `ahd-figma register` auto-configures Claude Code, Claude Desktop, Cursor, Windsurf, VS Code, Zed
+- [x] **Headless auth**: env vars (`AHD_CHANNEL`, `PORT`), TOML config, no browser redirect
 
 ---
 
@@ -123,10 +123,10 @@
 
 ## Standout Features
 
-1. **Schema auto-correction in dry-run** — Color "red" auto-fixed to "#FF0000", enum typos fuzzy-matched, numbers clamped to min/max, CSS named colors resolved
-2. **3-layer design intelligence** — `catalog_llm.go` (source of truth) -> `describe.go` (MCP tools) -> `SKILL.md` (agent skill file)
-3. **Batch step interpolation** — `${{steps.STEP_NAME.result.id}}` references across batch operations
-4. **Output path sandboxing** — Export `-o` restricted to CWD/home/temp, system dirs blocked
-5. **commitUndo() on all writes** — Every mutation undoable via Cmd+Z in Figma
-6. **4 MCP prompts** — Design strategy, batch workflow, common mistakes, token computation
-7. **144 typed schemas** — Every command has full JSON schema with safety metadata
+1. **Schema auto-correction in dry-run**: Color "red" auto-fixed to "#FF0000", enum typos fuzzy-matched, numbers clamped to min/max, CSS named colors resolved
+2. **3-layer design intelligence**: `catalog_llm.go` (source of truth) -> `describe.go` (MCP tools) -> `SKILL.md` (agent skill file)
+3. **Batch step interpolation**: `${{steps.STEP_NAME.result.id}}` references across batch operations
+4. **Output path sandboxing**: Export `-o` restricted to CWD/home/temp, system dirs blocked
+5. **commitUndo() on all writes**: Every mutation undoable via Cmd+Z in Figma
+6. **4 MCP prompts**: Design strategy, batch workflow, common mistakes, token computation
+7. **144 typed schemas**: Every command has full JSON schema with safety metadata

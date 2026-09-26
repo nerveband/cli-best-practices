@@ -1,38 +1,93 @@
-# Contract-first design (ShipTypes)
+# Contract-first design
 
-Boris Tane (Cloudflare) published [shiptypes.com](https://shiptypes.com/) with a simple thesis: type definitions should be the primary API contract, not prose documentation.
+Boris Tane (Cloudflare) published [shiptypes.com](https://shiptypes.com/) with a simple thesis: type definitions should be the primary API contract, not prose documentation. Documentation is a lossy copy of the code and it drifts. When an agent has types, it reaches the correct call on the first attempt. When it only has prose, it needs several error-recovery cycles.
 
-The argument is that documentation is a lossy copy of the code. It drifts. A type definition can't drift because it IS the code. When an agent has types, it reaches the correct implementation on the first attempt. When it only has prose docs, it needs multiple error-recovery cycles to get there.
+Cloudflare's [2026 CLI rebuild](https://blog.cloudflare.com/cf-cli-local-explorer/) applies this at scale. One TypeScript schema generates CLI commands, SDKs, Terraform, MCP, docs, and agent skills, with schema-layer guardrails for naming and flags. The lesson for smaller CLIs is the same: enforce consistency before review, not after someone notices drift.
 
-Cloudflare's [2026 CLI rebuild](https://blog.cloudflare.com/cf-cli-local-explorer/) shows the same principle applied to a large product surface. Their TypeScript schema is used to generate CLI commands, SDKs, Terraform, MCP, docs, and agent skills, with schema-layer guardrails for naming and flags. The key lesson for smaller CLIs is the same: enforce consistency before review, not after a human notices drift.
+A CLI has two contracts to keep honest: the one it **publishes** to agents, and the one it **consumes** from an upstream API.
 
-## In practice
+## The published contract
 
-For CLIs, this means:
+**One canonical source.** A schema defines every command, argument, output shape, and error kind. Help text, docs, skills, and any MCP surface are generated from it or validated against it.
 
-**One canonical contract.** A `schema.json` or OpenAPI spec that defines every command, flag, payload shape, and error format. Everything else (help text, docs, skill files) is generated from or validated against this contract.
+**Use a published format.** [The CLI Spec](https://clispec.dev/) defines a JSON schema document for exactly this, and a checker for it. [v0.2](https://clispec.dev/spec/v0.2/) is frozen and safe to claim conformance to. v0.3 is a candidate (August 2026) that you can build against, knowing it may still change. Richer formats such as [OpenCLI](https://opencli.org/) or [usage](https://usage.jdx.dev/) are good for docs and shell completions; the CLI Spec schema is the agent-facing layer on top.
 
-**CI fails on drift.** If you add a flag to the CLI but don't update the schema, the build breaks. If the API changes a response shape but the CLI still expects the old one, the build breaks.
+### Declare what each command is
 
-**Safety metadata per action.** Each command declares whether it's:
-- `readonly` or mutating
-- `destructive` or safe
-- `idempotent` or not
-- Whether it supports `--dry-run`
-- Whether it requires confirmation
+v0.3's key idea: every command describes itself, and only the rules that fit that description apply. The declaration is what earns an exemption.
 
-An agent can read this metadata and decide how much caution to exercise without being told by a human.
+| Declaration | Values | What it tells the consumer |
+|---|---|---|
+| `effects` (required) | `read_only`, `idempotent`, `non_idempotent` | Whether the command changes anything, and whether repeating it is safe |
+| `output_kind` | `data` (default), `stream`, `opaque` | Whether stdout is one JSON document, a line-by-line stream, or raw bytes such as a file |
+| `cardinality` (data only) | `single`, `bounded`, `unbounded` | Whether pagination and field selection are required |
+| `errors` | kinds from the top-level list | Which failures this command can produce, each with a declared exit code |
+| `confirmation_bypass_arg` | e.g. `--yes` | The command prompts on a TTY and refuses without one |
+| `idempotency_key_arg` | e.g. `--request-id` | How to make a non-idempotent command safe to retry |
 
-**Machine-readable capability discovery.** Instead of scraping `--help` text (which is designed for human eyes), the agent calls `mycli schema` and gets a structured JSON manifest of everything the CLI can do.
+```json
+{
+  "clispec": "0.3",
+  "name": "mycli",
+  "version": "2.3.0",
+  "output": {"tty": "text", "piped": "json"},
+  "commands": [
+    {"name": "docs list", "description": "List documents.",
+     "effects": "read_only", "cardinality": "unbounded",
+     "pagination": {"style": "cursor", "cursor_field": "next_cursor",
+                    "cursor_arg": "--cursor", "limit_arg": "--limit"},
+     "fields_arg": "--fields",
+     "output_fields": [{"name": "id", "type": "string"},
+                       {"name": "title", "type": "string"}],
+     "errors": ["auth", "rate_limit"]},
+    {"name": "docs delete", "description": "Move a document to trash.",
+     "effects": "idempotent", "cardinality": "single",
+     "confirmation_bypass_arg": "--yes",
+     "errors": ["auth", "not_found", "confirmation_required"]}
+  ],
+  "errors": [
+    {"kind": "auth", "exit_code": 3, "retryable": false},
+    {"kind": "rate_limit", "exit_code": 8, "retryable": true}
+  ]
+}
+```
 
-**Vocabulary rules.** The contract should define canonical verbs and flags and reject banned alternatives in CI. For example: `get`, not `info`; `list`, not only `ls`; one JSON flag; one destructive commitment convention; one pagination vocabulary.
+(Abbreviated: a real document also declares each command's `args` and every error kind it references.)
 
-**Local/remote scope.** If a CLI can operate against local simulation and remote production resources, the contract should mark that scope and every response should repeat it. Cloudflare's Local Explorer makes local resources inspectable through an API mirror, which gives agents a safe verification path before touching remote state.
+**Declare, never infer.** Safety metadata derived from a command's name (`delete` means destructive, `get` means read-only) is wrong often enough to be dangerous. A nested `views delete` and a top-level `folders delete` can have very different blast radii, and a `get` that rotates a token is not read-only. Permission systems auto-approve on `read_only`, and retry loops trust `idempotent`, so an inferred claim is a liability. Write the declaration next to the command definition and test it.
 
-**Skill generation.** `SKILL.md`, `AGENTS.md`, examples, and machine-readable `agent-context` should either be generated from the contract or validated against it. Agent guidance is part of the product surface, not a doc afterthought.
+### The schema command's own contract
+
+- It works **before anything else does**: no auth, no config file, no network. Agents reach for it exactly when they know nothing, often after setup failed.
+- Root `--help` mentions it, because `--help` is the universal first probe.
+- It accepts a command path to narrow the output (`mycli schema docs list`), because a full dump for a large CLI wastes context.
+
+### CI fails on drift
+
+If you add a flag and don't update the schema, the build breaks. If help text, `SKILL.md`, or an MCP tool description disagrees with the schema, the build breaks. In [agent-to-bricks](https://github.com/nerveband/agent-to-bricks), `bricks schema --validate` compares live CLI behavior against `cli/schema.json` on every commit.
+
+## The consumed contract
+
+A CLI that wraps an API inherits that API's contract. When the provider changes a parameter name or adds a response field, the CLI can break silently: requests still succeed, but filters are ignored or data is dropped.
+
+- **Pin a snapshot.** Check in the provider's OpenAPI or docs export with its source URL, fetch date, and a content hash.
+- **Diff it on a schedule.** A scheduled CI job refetches the spec and fails on any change, so drift becomes a reviewed diff instead of a user bug report.
+- **Test encoding and decoding against fixtures.** Assert exact query parameter names, casing, and array encoding. Decode every documented response variant. Keep default tests offline; use opt-in read-only probes only when a fixture can't settle a question.
+- **Don't flatten responses.** Model discriminated unions properly, or keep unknown fields as raw JSON, so new server fields pass through instead of vanishing.
+- **Keep write results.** When the API returns per-item results or server-assigned IDs, return them. Discarding them hides partial failures.
+
+A September 2026 static audit of craft-cli found the client sending `folderIDs` where the current Craft docs specify `folderIds`, a mismatch that could silently drop a search filter. The same audit found REST endpoints the CLI still labeled MCP-only. Neither shows up in unit tests that only mock the CLI's own assumptions. A pinned contract plus request-encoding fixtures catches both.
+
+## Other contract rules
+
+**Vocabulary.** Define canonical verbs and flags and reject banned alternatives in CI: `get`, not `info`; `list`, not only `ls`; one format flag; one confirmation convention; one pagination vocabulary.
+
+**Local and remote scope.** If a CLI can operate on a local simulation and on remote production resources, the contract marks which one each command touches and every response repeats it. Cloudflare's Local Explorer gives agents an inspectable local mirror, which is a safe place to verify before touching remote state.
+
+**Generated agent guidance.** `SKILL.md`, `AGENTS.md`, examples, and MCP tool definitions are part of the product surface. Generate them from the contract or validate them against it.
 
 ## How I use this
 
-In [agent-to-bricks](https://github.com/nerveband/agent-to-bricks), the CLI has a `bricks schema --validate` command that compares the live CLI behavior against `cli/schema.json`. If anything is out of sync, it fails. This runs in CI on every commit.
+[agent-to-bricks](https://github.com/nerveband/agent-to-bricks) validates its schema in CI, as described above.
 
-In [craft-cli](https://github.com/nerveband/craft-cli), this is on the roadmap. The CLI currently scores 0/3 on schema introspection. Adding a `craft schema` command is the single highest-leverage improvement.
+[craft-cli](https://github.com/nerveband/craft-cli) ships `craft schema` with flag types and safety metadata. As of v1.12.0 that metadata is inferred from leaf command names (`inferSafety` in `cmd/schema.go`), and the pinned Craft REST contract in `docs/contracts/` is behind the live API. Declared per-command effects and a scheduled contract diff are the next steps.

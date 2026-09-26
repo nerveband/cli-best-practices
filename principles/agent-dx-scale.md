@@ -2,7 +2,7 @@
 
 A scoring framework for evaluating how well a CLI works with AI agents. Seven axes, each scored 0-3, for a total between 0 and 21.
 
-The framework comes from Justin Poehnelt's ["Rewrite Your CLI for AI Agents"](https://justin.poehnelt.com/posts/rewrite-your-cli-for-ai-agents/) and has been refined through real-world use on multiple CLI projects.
+The framework comes from Justin Poehnelt's ["Rewrite Your CLI for AI Agents"](https://justin.poehnelt.com/posts/rewrite-your-cli-for-ai-agents/) and has been refined through real-world use on multiple CLI projects. Where this version departs from the original, it says so.
 
 > Human DX optimizes for discoverability and forgiveness.
 > Agent DX optimizes for predictability and defense-in-depth.
@@ -61,13 +61,15 @@ Does the CLI defend against agent hallucinations (not typos)?
 
 ### 6. Safety rails
 
-Can agents preview before acting?
+Can agents preview before acting, and trust what re-running does?
 
-| 0 | No dry-run, no sanitization |
+| 0 | No dry-run, no declared effects |
 |---|------------------------------|
 | 1 | `--dry-run` on some commands |
-| 2 | `--dry-run` on all mutating commands |
-| 3 | Dry-run plus response sanitization against prompt injection in API data |
+| 2 | `--dry-run` on all destructive and non-idempotent commands; prompts refuse without a TTY instead of hanging |
+| 3 | All of the above, plus declared per-command effects (read-only, idempotent, non-idempotent) and an explicit trust boundary for remote data |
+
+This departs from the original level 3, which asked for "response sanitization against prompt injection." Filtering known injection patterns is easy to bypass and corrupts legitimate content. Preserving data faithfully, labeling its source, and never executing it is the stronger rule. See [safety rails](../patterns/safety-rails.md#remote-data-is-untrusted).
 
 ### 7. Agent knowledge packaging
 
@@ -94,4 +96,6 @@ Not scored, but worth noting:
 
 - **MCP mode** (stdio JSON-RPC): typed invocation, no shell escaping
 - **Headless auth**: env vars for credentials, no browser redirect
-- **Agent detection**: check for `AI_AGENT` env var (via [`@vercel/detect-agent`](https://www.npmjs.com/package/@vercel/detect-agent)) and auto-switch output format
+- **CLI Spec schema**: a `schema` command that validates against [the CLI Spec](https://clispec.dev/), so external checkers can score the CLI
+
+Agent detection through an `AI_AGENT` environment variable was listed here previously. It is still only a proposal, and switching output format on it makes behavior differ between agents and scripts. Prefer TTY detection and explicit flags. See [agent knowledge](../patterns/agent-knowledge.md#agent-detection).

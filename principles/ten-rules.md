@@ -28,6 +28,8 @@ Missing a required flag? Don't hang. Print the correct invocation and exit. Agen
 
 Agents retry constantly. Network timeouts, context loss mid-task. Running the same deploy twice should return "already deployed, no-op," not create a duplicate.
 
+(Not every command can be idempotent. Creating a deployment or sending a message can't be, honestly. For those, declare them non-idempotent and offer an idempotency key or a way to check the outcome. See [safety rails](../patterns/safety-rails.md#say-what-re-running-does).)
+
 ## 7. --dry-run for destructive actions
 
 Let agents preview what a delete or deploy would do before committing. Validate the plan, then run it for real.

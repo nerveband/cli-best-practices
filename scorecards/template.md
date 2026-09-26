@@ -2,7 +2,9 @@
 
 **Date:** YYYY-MM-DD
 **Version:** vX.Y.Z
+**Audit version:** v3 ([agent-cli-audit.md](agent-cli-audit.md))
 **Total: ?/85**
+**CLI Spec:** conformant to 0.2 / 0.3 candidate / not published / failed (reason)
 
 ## Scores
 
@@ -27,19 +29,29 @@
 | Domain depth/proof gates | /5 | |
 | **Total** | **/85** | |
 
-## Multi-surface readiness
+## Declared exemptions
 
-- [ ] MCP mode
-- [ ] Headless auth
-- [ ] Agent detection (`AI_AGENT` env var)
-- [ ] Versioned agent-context/schema
-- [ ] Installable SKILL.md
-- [ ] Async `--wait` and job recovery
-- [ ] Profile/config source inspection
+Checks that passed because the CLI declares why they don't apply.
+
+| Check | Declaration | Where it's declared |
+|-------|-------------|---------------------|
+| | | |
+
+## Readiness
+
+- [ ] `schema` works with no auth, config, or network
+- [ ] Every command declares its effects (read-only, idempotent, non-idempotent)
+- [ ] Prompts refuse without a TTY and name the bypass flag
+- [ ] Error kinds map to declared exit codes
+- [ ] Secrets never required on argv
+- [ ] Upstream API contract pinned and diffed in CI (API wrappers only)
+- [ ] Installable SKILL.md that follows the Agent Skills spec
+- [ ] MCP surface generated from the same contract (if shipped)
+- [ ] Async `--wait` and job recovery (if the CLI has async operations)
+- [ ] Profiles with inspectable config sources
 - [ ] File argument expansion and explicit encodings
-- [ ] Local sync/search and explicit data source
-- [ ] Proof-of-behavior/dogfood gates
-- [ ] Provenance and competitor feature checklist
+- [ ] Local sync/search with explicit data source (high-gravity APIs)
+- [ ] Proof-of-behavior or dogfood gates
 
 ## Strengths
 
