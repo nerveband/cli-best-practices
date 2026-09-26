@@ -13,7 +13,7 @@ Use this skill to evaluate a CLI that an AI agent will call from a shell. The ch
 1. Identify the binary and build it if needed. Record the exact version.
 2. Run `$CLI --help`, `$CLI --version` (or `$CLI version`), and `$CLI schema` if it exists. Then run one safe read command.
 3. If the CLI publishes a CLI Spec schema, validate it (`clispec score $CLI`, or `make check` in the clispec repo) and record the result.
-4. Work through all 85 checks. Record pass, fail, or declared exemption for each, with one evidence command or observation.
+4. Work through all 97 checks. Record pass, fail, or declared exemption for each, with one evidence command or observation.
 5. For anything that writes, use `--dry-run`, local fixtures, a sandbox account, or mocked credentials. Never touch real data without explicit user approval.
 6. Produce the report below: category table, top five fixes, evidence notes.
 
@@ -63,7 +63,7 @@ CLI Spec: `<conformant to 0.2 | 0.3 candidate | not published | failed: reason>`
 | Unix composability/restraint | /5 | |
 | API-native payload ergonomics | /5 | |
 | Domain depth/proof gates | /5 | |
-| Total | /85 | |
+| Total | /97 | |
 
 ## Highest-impact fixes
 

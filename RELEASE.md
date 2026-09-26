@@ -2,7 +2,11 @@
 
 ## Audit v3: Standards Alignment (September 2026)
 
-This release aligns the repo with the standards published in 2026 and corrects advice that aged badly. The audit keeps its 85 checks and 17 categories, so earlier scores stay comparable.
+This release aligns the repo with the standards published in 2026 and corrects advice that aged badly. The audit keeps its 17 categories and checks, so version 2 scores stay comparable.
+
+**Correction:** version 2 was published as an "85-point" audit, but its categories contain 97 checks. Totals, bands, the template, and SKILL.md now say 97. Legacy 50-point scores come from the [original 50-check file](https://github.com/nerveband/cli-best-practices/blob/14e27e0/scorecards/agent-cli-audit.md), not from categories 1-10 of the current one (which now hold 62 checks).
+
+**Also fixed after the first v3 audit (craft-cli):** check 12.3 contradicted check 1.6, since the schema must load no config but was also asked to list profiles. 12.3 now accepts a separate runtime command. The NDJSON guidance also now says that buffered JSONL is not streaming.
 
 ### What changed
 

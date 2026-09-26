@@ -9,14 +9,56 @@ Repo: [nerveband/craft-cli](https://github.com/nerveband/craft-cli)
 | | |
 |---|---|
 | Latest release | v1.12.0 |
-| Last full score | v1.9.0 (2026-04-01): 45/50 legacy audit, 14/21 DX scale |
-| Next step | Full re-audit of v1.12.0 against audit v3 (85 checks) |
+| Latest audit | Audit v3, 2026-09-26, on an **unreleased** working tree based on v1.12.0: **83/97** (Agent-native), including 7 declared exemptions. Baseline 45/97. |
+| CLI Spec | Frozen v0.2 schema validates. `clispec` 0.3.0 scored 22/24 on a safe probe; the two misses need v0.3 `cardinality` declarations. |
+| DX scale | Not rescored since v1.9.0 (14/21) |
+| Next step | Release the working tree, then rescore the released binary |
 
-The v1.9.0 scores below are kept as history. Since then craft-cli added `--count`, `jsonl`/`yaml`/`raw` output, `--fields`, `--transform`, `--deliver`, profiles, a local feedback log, MCP escalation, and a built-in `craft audit agent-dx` command. That built-in command checks mostly whether flags exist, so it isn't a substitute for a behavioral audit.
+The v3 audit was run by an agent from the craft-cli repo, following this repo's [SKILL.md](../SKILL.md). The baseline is not a clean v1.12.0 score: a few early fixes (MCP tool-error handling, some decoding and count fixes) were already in the working tree when it ran. Full evidence per check is in `docs/plans/2026-09-26-agent-cli-audit-v3-final.md` in the craft-cli repo. That work is not committed or released yet.
 
-## Open findings for the v3 re-audit
+## Audit v3 (2026-09-26)
 
-Found in a static review of v1.12.0 source on 2026-09-26, and checked against the live [Craft Connect API docs](https://connect.craft.do/link/HHRuPxZZTJ6/docs/v1). None of these required live API calls. The re-audit should confirm their behavior.
+| Category | Before | After | Max |
+|---|---:|---:|---:|
+| Discoverability | 5 | 6 | 7 |
+| Structured output | 5 | 6 | 6 |
+| Input flexibility | 4 | 4 | 5 |
+| Safety rails | 1 | 6 | 6 |
+| Error handling | 5 | 7 | 7 |
+| Context window discipline | 2 | 5 | 5 |
+| Predictability | 5 | 6 | 7 |
+| Agent knowledge | 5 | 7 | 7 |
+| Resilience | 2 | 7 | 7 |
+| Distribution and lifecycle | 2 | 5 | 5 |
+| Three-layer introspection | 2 | 3 | 5 |
+| Persistent identity and configuration | 1 | 2 | 5 |
+| Two-way I/O and artifacts | 1 | 5 | 5 |
+| Contract and generation discipline | 0 | 3 | 5 |
+| Unix composability and agent restraint | 2 | 4 | 5 |
+| API-native payload ergonomics | 2 | 4 | 5 |
+| Domain depth and proof gates | 1 | 3 | 5 |
+| **Total** | **45** | **83** | **97** |
+
+**Declared exemptions (7):**
+- 6.2: REST has no server pagination for collections. The help separates local truncation from MCP cursors.
+- 9.5, 9.6, 9.7: there is no async API.
+- 10.5: there is no local data backend.
+- 13.5: feedback is local-only.
+- 14.5: craft-cli publishes no MCP server.
+
+**Remaining failures (14):**
+
+| Checks | Gap |
+|---|---|
+| 11.3, 11.4, 14.1 | Per-command output schemas are permissive; CLI output schemas and conditional inputs aren't fully defined from one contract |
+| 12.3, 12.4, 12.5 | No effective-config source report; credentials share the profile file (mode 0600, redacted) instead of a separate store. Check 12.3 was reworded after this audit to accept a runtime command such as `profiles list` instead of requiring profiles in the offline schema, so it may now pass; confirm on rescore. |
+| 15.2, 17.1, 17.2 | Lists fetch everything by default; no local index or selectable data source |
+| 1.3, 3.1, 7.1, 14.4 | Examples below 80% coverage; the optional setup wizard is interactive by design; document verbs are top-level; response scope isn't repeated everywhere |
+| 16.5 | No embedded `@file://` / `@data://` argument expansion |
+
+## Findings from the 2026-09-26 source review
+
+Found in a static review of v1.12.0 source and checked against the live [Craft Connect API docs](https://connect.craft.do/link/HHRuPxZZTJ6/docs/v1). **All 11 are fixed in the unreleased working tree**, according to the v3 final audit.
 
 | Audit check | Finding | Evidence |
 |---|---|---|
@@ -71,4 +113,5 @@ Full detail, including the Craft API gap table: `docs/plans/2026-09-26-api-and-b
 |---------|-------|----------|-------------|
 | v1.8.0 | 38/50 | 10/21 | Baseline. JSON default, dry-run, LLM docs. |
 | v1.9.0 | 45/50 | 14/21 | Schema introspection, whiteboards, input hardening, error hints, `--limit`/`--max-depth`, structured dry-run |
-| v1.12.0 | Pending | Pending | `--count`, more output formats, `--fields`, `--transform`, `--deliver`, profiles, feedback log, MCP escalation, batching |
+| v1.12.0 | 45/97 (v3 baseline) | Not rescored | `--count`, more output formats, `--fields`, `--transform`, `--deliver`, profiles, feedback log, MCP escalation, batching |
+| Unreleased | 83/97 (v3) | Not rescored | Declared effects, CLI Spec v0.2 schema, pinned Craft contract with drift check, REST views and reminders, Retry-After passthrough, per-item write results, non-TTY refusal, MCP error and dry-run fixes |

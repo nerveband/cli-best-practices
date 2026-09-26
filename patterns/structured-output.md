@@ -86,7 +86,7 @@ Some non-zero exits aren't errors. `diff` and `grep` exit 1 for "difference foun
 
 ## NDJSON streaming
 
-For large or streaming output, emit one JSON object per line and flush each as it's ready. `head -n 20` of NDJSON is 20 valid records; a truncated JSON array is unparseable.
+For large or streaming output, emit one JSON object per line and flush each as it's ready. `head -n 20` of NDJSON is 20 valid records; a truncated JSON array is unparseable. JSONL that is buffered until the full response arrives is a formatting choice, not streaming: document which one your CLI does.
 
 ```bash
 $ mycli -o ndjson logs tail

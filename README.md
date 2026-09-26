@@ -39,7 +39,7 @@ Rules 1 to 7 follow [the CLI Spec](https://clispec.dev/) and [clig.dev](https://
 
 | Tool | What it measures | Use it when |
 |---|---|---|
-| [Agent CLI Audit](scorecards/agent-cli-audit.md) (original) | 85 pass/fail checks in 17 categories, each verified by running a command | You want an evidence-backed score and a prioritized fix list |
+| [Agent CLI Audit](scorecards/agent-cli-audit.md) (original) | 97 pass/fail checks in 17 categories, each verified by running a command | You want an evidence-backed score and a prioritized fix list |
 | [CLI Spec conformance](https://clispec.dev/#conformance) | Whether your `schema` output and runtime behavior meet the published spec | You want an external, versioned standard |
 | [Agent DX Scale](principles/agent-dx-scale.md) | 7 axes scored 0 to 3, adapted from Justin Poehnelt | You want a quick, subjective read |
 
@@ -79,7 +79,7 @@ Every pattern here was tested on these tools.
 
 | CLI | Language | What it does | Last scored |
 |---|---|---|---|
-| [craft-cli](https://github.com/nerveband/craft-cli) | Go | Craft.do documents, blocks, tasks, collections, and whiteboards over REST and MCP | 45/50 legacy audit, 14/21 DX (v1.9.0, April 2026). [Re-audit pending](scorecards/craft-cli.md). |
+| [craft-cli](https://github.com/nerveband/craft-cli) | Go | Craft.do documents, blocks, tasks, collections, and whiteboards over REST and MCP | 83/97 audit v3 on an unreleased build (baseline 45/97), 14/21 DX (v1.9.0). [Scorecard](scorecards/craft-cli.md). |
 | [ai-happy-design](https://github.com/nerveband/ai-happy-design) | Go | Figma CLI for AI agents: 144 commands, schema validation, design intelligence | 50/50 legacy audit, 21/21 DX (v0.12.0, April 2026) |
 | [agent-to-bricks](https://github.com/nerveband/agent-to-bricks) | Go | Bricks Builder bridge for AI agents, contract-first with CI-validated schema | 9/21 DX |
 | [beeper-api-cli](https://github.com/nerveband/beeper-api-cli) | Go | Cross-platform messaging (WhatsApp, Telegram, Signal, and more) | |

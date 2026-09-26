@@ -3,7 +3,7 @@
 **Date:** YYYY-MM-DD
 **Version:** vX.Y.Z
 **Audit version:** v3 ([agent-cli-audit.md](agent-cli-audit.md))
-**Total: ?/85**
+**Total: ?/97**
 **CLI Spec:** conformant to 0.2 / 0.3 candidate / not published / failed (reason)
 
 ## Scores
@@ -27,7 +27,7 @@
 | Unix composability/restraint | /5 | |
 | API-native payload ergonomics | /5 | |
 | Domain depth/proof gates | /5 | |
-| **Total** | **/85** | |
+| **Total** | **/97** | |
 
 ## Declared exemptions
 

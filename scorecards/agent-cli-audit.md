@@ -8,7 +8,7 @@ Unlike the [Agent DX Scale](https://justin.poehnelt.com/posts/rewrite-your-cli-f
 
 Validated against [craft-cli](https://github.com/nerveband/craft-cli) (45/50 on the legacy audit, v1.9.0) and informed by building 10+ CLIs including [agent-to-bricks](https://github.com/nerveband/agent-to-bricks), [beeper-api-cli](https://github.com/nerveband/beeper-api-cli), [yt-api-cli](https://github.com/nerveband/yt-api-cli), [mochi-cli](https://github.com/nerveband/mochi-cli), and [cloak-agent](https://github.com/nerveband/cloak-agent).
 
-Version 3 (September 2026) keeps the same 85 checks and 17 categories, so earlier scores stay comparable. It rewrites pass criteria to align with [the CLI Spec](https://clispec.dev/): commands declare their effects and output shape, declared exemptions replace one-size-fits-all flags, and behavior counts instead of flag presence. It also adds upstream API contract drift, secrets on argv, rate-limit metadata, and remote-data trust boundaries to existing checks.
+Version 3 (September 2026) keeps the same 97 checks and 17 categories as version 2. (Version 2 was published as "85 checks", but the categories actually contain 97; the totals and bands below are corrected.) Version 3 rewrites pass criteria to align with [the CLI Spec](https://clispec.dev/): commands declare their effects and output shape, declared exemptions replace one-size-fits-all flags, and behavior counts instead of flag presence. It also adds upstream API contract drift, secrets on argv, rate-limit metadata, and remote-data trust boundaries to existing checks.
 
 ### Sources that informed this framework
 
@@ -35,7 +35,7 @@ Version 3 (September 2026) keeps the same 85 checks and 17 categories, so earlie
 
 ## How to run this audit
 
-Replace `$CLI` with the binary name. Run each test and mark it pass or fail. Each check is 1 point; the total is 85.
+Replace `$CLI` with the binary name. Run each test and mark it pass or fail. Each check is 1 point; the total is 97.
 
 ### Scoring rules
 
@@ -46,13 +46,13 @@ Replace `$CLI` with the binary name. Run each test and mark it pass or fail. Eac
 
 ### Bands
 
-- 0-20: Human-only
-- 21-35: Agent-tolerant
-- 36-50: Agent-ready
-- 51-65: Agent-first
-- 66-85: Agent-native
+- 0-23: Human-only
+- 24-40: Agent-tolerant
+- 41-57: Agent-ready
+- 58-74: Agent-first
+- 75-97: Agent-native
 
-For legacy comparisons, score Categories 1-10 only as the original 50-point audit.
+Legacy scores (such as 45/50) come from the [original 50-check audit](https://github.com/nerveband/cli-best-practices/blob/14e27e0/scorecards/agent-cli-audit.md). Categories 1-10 here now hold 62 checks, so to reproduce a legacy score, use that file rather than a subset of this one.
 
 ---
 
@@ -512,8 +512,12 @@ PASS if: recurring configuration can be saved as named profiles rather than repe
 ### 12.2 Profile precedence is documented
 PASS if: precedence is clear, ideally explicit flag > environment variable > profile > default.
 
-### 12.3 Profiles are exposed through agent-context
-PASS if: available profile names and safe non-secret profile metadata appear in the machine-readable manifest.
+### 12.3 Profiles are exposed to agents
+```bash
+$CLI profiles list --json
+# or: $CLI context --json
+```
+PASS if: available profile names, the active profile, and safe non-secret profile metadata are available through a machine-readable command. This should be a runtime command, separate from `schema`: check 1.6 requires the schema to work without reading config, so profile data does not belong in it.
 
 ### 12.4 Config source can be inspected
 ```bash
@@ -702,7 +706,7 @@ Count your passes. The breakdown by category tells you where to focus:
 | Unix composability/restraint | 5 | |
 | API-native payload ergonomics | 5 | |
 | Domain depth/proof gates | 5 | |
-| **Total** | **85** | |
+| **Total** | **97** | |
 
 ---
 
@@ -720,4 +724,4 @@ If you're an AI coding agent asked to audit a CLI, do this:
 8. List the top 5 highest-impact fixes (biggest point gains with least effort)
 9. Cite the sources that justify non-obvious recommendations
 
-The legacy 50-point audit should take under 5 minutes for a well-structured CLI. The full 85-point audit usually takes 10-25 minutes, depending on how many async, profile, artifact, contract, API-payload, local-store, and proof-gate checks apply.
+The original 50-check audit takes under 5 minutes for a well-structured CLI. The full 97-check audit usually takes 10-25 minutes, depending on how many async, profile, artifact, contract, API-payload, local-store, and proof-gate checks apply.
